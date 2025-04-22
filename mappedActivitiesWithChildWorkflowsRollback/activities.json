@@ -1,0 +1,8 @@
+{
+  "mappings": {
+    "ProcessOrder": "CancelOrder",
+    "ChargePayment": "RefundPayment",
+    "ShipOrder": "CancelShipment"
+  }
+}
+

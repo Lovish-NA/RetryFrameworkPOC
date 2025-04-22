@@ -14,9 +14,9 @@ func MoneyTransfer(ctx workflow.Context, input PaymentDetails) (string, error) {
 	// RetryPolicy specifies how to automatically handle retries if an Activity fails.
 	retrypolicy := &temporal.RetryPolicy{
 		InitialInterval:        time.Second,
-		BackoffCoefficient:     2.0,
+		BackoffCoefficient:     1.0,
 		MaximumInterval:        100 * time.Second,
-		MaximumAttempts:        500, // 0 is unlimited retries
+		MaximumAttempts:        5, // 0 is unlimited retries
 		NonRetryableErrorTypes: []string{"InvalidAccountError", "InsufficientFundsError"},
 	}
 
@@ -31,6 +31,11 @@ func MoneyTransfer(ctx workflow.Context, input PaymentDetails) (string, error) {
 	// Apply the options.
 	ctx = workflow.WithActivityOptions(ctx, options)
 
+	fallback := NewRollbackManager(ctx)
+
+	defer func() {
+		fallback.ExecuteRollback()
+	}()
 	// Withdraw money.
 	var withdrawOutput string
 
@@ -40,6 +45,7 @@ func MoneyTransfer(ctx workflow.Context, input PaymentDetails) (string, error) {
 		return "", withdrawErr
 	}
 
+	fallback.Add(Refund, input)
 	// Deposit money.
 	var depositOutput string
 
@@ -47,19 +53,7 @@ func MoneyTransfer(ctx workflow.Context, input PaymentDetails) (string, error) {
 
 	if depositErr != nil {
 		// The deposit failed; put money back in original account.
-
-		var result string
-
-		refundErr := workflow.ExecuteActivity(ctx, Refund, input).Get(ctx, &result)
-
-		if refundErr != nil {
-			return "",
-				fmt.Errorf("Deposit: failed to deposit money into %v: %v. Money could not be returned to %v: %w",
-					input.TargetAccount, depositErr, input.SourceAccount, refundErr)
-		}
-
-		return "", fmt.Errorf("Deposit: failed to deposit money into %v: Money returned to %v: %w",
-			input.TargetAccount, input.SourceAccount, depositErr)
+		return "", depositErr
 	}
 
 	result := fmt.Sprintf("Transfer complete (transaction IDs: %s, %s)", withdrawOutput, depositOutput)

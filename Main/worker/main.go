@@ -2,11 +2,10 @@ package main
 
 import (
 	"log"
+	"money-transfer-project-template-go/app/Main"
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
-
-	"money-transfer-project-template-go/app"
 )
 
 // @@@SNIPSTART money-transfer-project-template-go-worker
@@ -18,13 +17,13 @@ func main() {
 	}
 	defer c.Close()
 
-	w := worker.New(c, app.MoneyTransferTaskQueueName, worker.Options{})
+	w := worker.New(c, Main.MoneyTransferTaskQueueName, worker.Options{})
 
 	// This worker hosts both Workflow and Activity functions.
-	w.RegisterWorkflow(app.MoneyTransfer)
-	w.RegisterActivity(app.Withdraw)
-	w.RegisterActivity(app.Deposit)
-	w.RegisterActivity(app.Refund)
+	w.RegisterWorkflow(Main.MoneyTransfer)
+	w.RegisterActivity(Main.Withdraw)
+	w.RegisterActivity(Main.Deposit)
+	w.RegisterActivity(Main.Refund)
 
 	// Start listening to the Task Queue.
 	err = w.Run(worker.InterruptCh())

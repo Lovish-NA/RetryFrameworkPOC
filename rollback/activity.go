@@ -30,9 +30,9 @@ func Deposit(ctx context.Context, data PaymentDetails) (string, error) {
 
 	referenceID := fmt.Sprintf("%s-deposit", data.ReferenceID)
 	bank := BankingService{"bank-api.example.com"}
-	// Uncomment the next line and comment the one after that to simulate an unknown failure
-	// confirmation, err := bank.DepositThatFails(data.TargetAccount, data.Amount, referenceID)
-	confirmation, err := bank.Deposit(data.TargetAccount, data.Amount, referenceID)
+	//Uncomment the next line and comment the one after that to simulate an unknown failure
+	confirmation, err := bank.DepositThatFails(data.TargetAccount, data.Amount, referenceID)
+	//confirmation, err := bank.Deposit(data.TargetAccount, data.Amount, referenceID)
 	return confirmation, err
 }
 
