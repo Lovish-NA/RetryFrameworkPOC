@@ -36,7 +36,7 @@ func OrderWorkflow(ctx workflow.Context) (string, error) {
 	rollback.Add(CancelOrder)
 	err := workflow.ExecuteActivity(ctx, ProcessOrder).Get(ctx, nil)
 	if err != nil {
-		rollback.ExecuteRollback()
+		rollback.ExecuteRollback(false)
 		return "", err
 	}
 
@@ -44,7 +44,7 @@ func OrderWorkflow(ctx workflow.Context) (string, error) {
 	rollback.Add(RefundPayment)
 	err = workflow.ExecuteActivity(ctx, ChargePayment).Get(ctx, nil)
 	if err != nil {
-		rollback.ExecuteRollback()
+		rollback.ExecuteRollback(false)
 		return "", err
 	}
 
@@ -52,11 +52,11 @@ func OrderWorkflow(ctx workflow.Context) (string, error) {
 	rollback.Add(CancelShipment)
 	err = workflow.ExecuteActivity(ctx, ShipOrder).Get(ctx, nil)
 	if err != nil {
-		rollback.ExecuteRollback()
+		rollback.ExecuteRollback(false)
 		return "", err
 	}
 
-	return "", nil
+	return "", err
 }
 
 // @@@SNIPEND
